@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="/highlight/styles/default.css">
+    <script src="/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="/styles/layout.css">
+
+    <title>Swerve: Module PID</title>
+</head>
+
+<body>
+    <button onclick="window.location='swerve_home.html'">Go Back</button>
+    <h1>PID Tuning</h1>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+
+        <h2>1. Creating PIDController and getters</h2>
+
+        <p>
+            <a target="blank"; href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html">PIDController</a> 
+            is a class from WPILib that we will be putting in our SwerveModule file. It is initialized just like a motor or sensor.
+        </p>
+        <div>
+        <pre><code class="code_block">
+public class SwerveModule {
+    .
+    .
+    .
+    private final PIDController turningPID;
+
+    public SwerveModule(...) {
+        .
+        .
+        .
+        turningPID = new PIDController(0, 0, 0);
+        turningPID.enableContinuousInput(-180, 180);
+        turningPID.setSetpoint(0);
+    }
+}
+        </code></pre>
+        </div>
+        <p>
+            As commands are run by subsystems, we need to create methods in SwerveSubsystem to access the module's PID and motors.
+        </p>
+        <button onclick="showCode('code1')">Show Code</button>
+        <div id="code1" style="display: none;">
+            <pre><code class="code_block">
+public void stop() {
+    driveMotor.set(0);
+    turningMotor.set(0);
+}
+
+//no setpoint value, can be changed live
+public void pidTuning() {
+    turningMotor.set(turningPID.calculate(getAbsoluteEncoderDeg()));
+}
+
+public void pidReset() {
+    turningPID.reset();
+}
+            </code></pre>
+            </div>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>2. Creating Command</h2>
+        <p class="important">
+            Normally commands would be created in a separate file, but we need to access the SwerveModule objects,
+            which we can only do inside SwerveSubsystem (without creating a bunch of getters).<br><br>
+            In addition, as commands are run in RobotContainer, we need a way to tell the command which
+            module to run (without creating a separate command for each module).
+        </p>
+
+        <p>
+            To pass the SwerveModule from, we will use a String as input, and use a Map to connect it to a Module
+            <button onclick="showCode('code2')">Show Code</button>
+            <div id="code2" style="display: none;">
+                <pre><code class="code_block">
+import java.util.Map;
+public class SwerveSubsystem extends SubsystemBase {
+
+    public Map<String, SwerveModule> swerveMap = Map.of(
+        "Front Left", frontLeft, 
+        "Front Right", frontRight,
+        "Back Left", backLeft,
+        "Back Right", backRight
+    );
+}
+                </code></pre>
+            </div>
+        </p>
+        <p>
+            Due to the simplicity of the command, we can use a 
+            <a target="_blank"; href="https://docs.wpilib.org/en/stable/docs/software/commandbased/commands.html#running-actions">FunctionalCommand</a>
+            along with the methods created in SwerveModule. Make sure the String parameter is converted into a Swerve Module before the command.
+            <button onclick="showCode('code3')">Show Code</button>
+        </p>
+        
+        <div id="code3" style="display: none;">
+            <pre><code class="code_block">
+public FunctionalCommand modulePIDTuning(String str) {
+    SwerveModule module = swerveMap.get(str);
+    return new FunctionalCommand(
+      module::pidReset,             //On cmd start, reset PID controller
+      module::pidTuning,            //Repeatedly run pidTuning()
+      interrupted -> module.stop(), //When cmd is interupted, stop module
+      () -> false,                  //Does not end on its own
+      this);                        //cmd requires control of this subsystem (swerveSubsystem) 
+}
+            </code></pre>
+        </div>
+
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>3. Running Command with Controller Input</h2>
+
+        <p>
+            Now that the command is complete we can bind it to a trigger (Xbox Controller button).
+            <ol>
+                <li>Create a CommandXboxController object in RobotContainer</li>
+                <li>Bind the command to a button</li>
+                Make 4 different command instances for the 4 modules
+            </ol>
+        </p>
+
+        <button onclick="showCode('code4')">Show Code</button>
+        <div id="code4" style="display: none;">
+            <pre><code class="code_block">
+public class RobotContainer {
+    private final CommandXboxController driver = new CommandXboxController(0);
+    . 
+    . 
+    . 
+
+    private void configureBindings() {
+        //Uses the corners of the Xbox D-Pad
+        driver.povUpLeft().whileTrue(swerve.pidTuning("Front Left"));
+        driver.povUpRight().whileTrue(swerve.pidTuning("Front Right"));
+        driver.povDownLeft().whileTrue(swerve.pidTuning("Back Left"));
+        driver.povDownRight().whileTrue(swerve.pidTuning("Back Right"));
+      }
+}
+            </code></pre>
+        </div>
+    </div>
+
+    <script>
+        function showCode(i) {
+            var x = document.getElementById(i);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

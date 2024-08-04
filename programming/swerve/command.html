@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="/highlight/styles/default.css">
+    <script src="/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="/styles/layout.css">
+
+    <title>Swerve: Command-Based</title>
+</head>
+
+<body>
+    <button onclick="window.location='swerve_home.html'">Go Back</button>
+    <h1>Converting to a Command-Based file</h1>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        
+        <h2>1. Blank Command-Based Project</h2>
+        <p>
+            <ul>
+                <li>Create a new project in the Project Creator using the template "Command Robot Skeleton (Advanced)"</li>
+                <li>In your /robot/ folder (where RobotContainer.java is) make two new folders (subsystems and commands)</li>
+            </ul>
+        </p>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        
+        <h2>2. Moving objects from Timed Project to Command-Based</h2>
+
+        <ol>
+            <li>Right click on subsystems, "Create a new class/command", "Empty Class", name it SwerveModule.java</li>
+                Note: although this is in the subsystems folder, it is not an official subsytem (make sure you click Empty Class instead of Subsystem)
+                <li>Right click on subsystems, "Create a new class/command", <strong>"Subsystem"</strong>, name it SwerveSubsystem.java</li> 
+                (this one is the subsystem)
+            <li>Back to SwerveModule.java, make a constructor for this class</li>
+        </ol>
+
+        <div>
+            <pre><code class="code_block">
+public class SwerveModule {
+    //Place where variables are named
+
+    public SwerveModule() {
+        //variables are defined
+    }
+}
+            </code></pre>
+        </div>
+
+        <p>
+        All objects such as motors, encoders, gyro are initialized at the top of the class,
+        everything in the Robot() constructor is placed in SwerveModule(). All methods are placed in the class as usual.<br>
+        You do not put in motor-specific information like CAN-IDs, however, 
+        think of the SwerveModule class as a blueprint for all 4 modules. 
+        The variables are all for module specific stuff (gyro is not included here as it is not specific to one module).
+        </p>
+
+        <button onclick="showCode('code1')">Show Code</button>
+        <div id="code1" style="display: none;">
+            <pre><code class="code_block">
+public class SwerveModule {
+    public final String moduleName; //this is new, we will use it later
+    private final CANSparkMax driveMotor, turningMotor;
+    private final RelativeEncoder driveEncoder, turningEncoder;
+
+    private final SparkAnalogSensor absEncoder;
+    private final double absEncoderOffset;
+
+    public SwerveModule(String name, int driveMotorID, int turningMotorID, boolean reversed, double offset) {
+        this.moduleName = name;
+        this.driveMotor = new CANSparkMax(driveMotorID, MotorType.kBrushless);
+        this.turningMotor = new CANSparkMax(turningMotorID, MotorType.kBrushless);
+
+        driveMotor.restoreFactoryDefaults();
+        turningMotor.restoreFactoryDefaults();
+
+        turningMotor.setInverted(reversed);
+
+        this.driveEncoder = driveMotor.getEncoder();
+        this.turningEncoder = turningMotor.getEncoder();
+
+        driveEncoder.setPositionConversionFactor(ModuleConstants.driveRotToMetre);
+        turningEncoder.setPositionConversionFactor(ModuleConstants.turningRotToWheelDegree);
+        absEncoder.setPositionConversionFactor(ModuleConstants.voltToDegree);
+
+        driveEncoder.setVelocityConversionFactor(ModuleConstants.driveRPMToMetresPerSecond);
+        turningEncoder.setVelocityConversionFactor(ModuleConstants.turningRPMToDegreePerSecond);
+
+        this.absEncoder = turningMotor.getAnalog();
+        this.absEncoderOffset = offset;
+    }
+
+    public double getTurningEncoderDegree() {
+        return Math.IEEEremainder(turningEncoder.getPosition(), 360);
+    }
+
+    public double getAbsoluteEncoderDeg() {
+        if (absEncoder.getPosition() - absEncoderOffset < 180 && absEncoder.getPosition() > -180) {
+            return absEncoder.getPosition() - absEncoderOffset;
+        } else if (absEncoder.getPosition() - absEncoderOffset < -180){
+            return absEncoder.getPosition() - absEncoderOffset + 360;
+        } else {
+            return absEncoder.getPosition() - absEncoderOffset - 360;
+        }
+    }
+}
+            </code></pre>      
+    </div>
+    <p>
+        Now information like CAN IDs are passed in through the constructor, rather than all created in one file, 
+        methods also don't require a parameter for which sensor is trying to access it, as each method will be specific to one module.
+    </p>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>3. Initializing SwerveModule as an object</h2>
+        <p>
+            In the subsystem, we will pass in the necessary information to create each module.<br>
+            To keep things neat, put constant values like CAN IDs in a Constants.java file in your /robot/ folder,
+            and access them in other files by importing them.
+        </p>    
+        <pre><code class="code_block">
+public final class Constants {
+
+    public static final class ModuleConstants {
+        //Front Left
+        public static final int frontLeftDriveCANID = 4;
+        public static final int frontLeftTurningCANID = 3;
+        public static final double frontLeftAbsoluteOffset = 221.86;
+
+        //Front Right
+        public static final int frontRightDriveCANID = 7;
+        public static final int frontRightTurningCANID = 8;
+        public static final double frontRightAbsoluteOffset = 152.70;
+
+        //Back Left
+        public static final int backLeftDriveCANID = 2;
+        public static final int backLeftTurningCANID = 1;
+        public static final double backLeftAbsoluteOffset = 72.73;
+
+        //Back Right
+        public static final int backRightDriveCANID = 5;
+        public static final int backRightTurningCANID = 6;
+        public static final double backRightAbsoluteOffset = 95.95;
+    }
+}
+        </code></pre>
+        <p>
+            In SwerveSubsystem.java, create each module as you would any other object you've created.
+            Your parameters are the ones defined in the SwerveModule constructor. 
+            Initialize the gyro and its methods here too.
+        </p>
+
+    <button onclick="showCode('code2')">Show Code</button>
+        <div id="code2" style="display: none;">
+            <pre><code class="code_block">
+public class SwerveSubsystem extends SubsystemBase {
+    private final SwerveModule frontLeft = new SwerveModule(
+      "Front Left",
+      ModuleConstants.frontLeftDriveCANID, 
+      ModuleConstants.frontLeftTurningCANID, 
+      true, 
+      ModuleConstants.frontLeftAbsoluteOffset);
+  
+    private final SwerveModule frontRight = new SwerveModule(
+      "Front Right",
+      ModuleConstants.frontRightDriveCANID, 
+      ModuleConstants.frontRightTurningCANID, 
+      true, 
+      ModuleConstants.frontRightAbsoluteOffset);
+    
+    private final SwerveModule backLeft = new SwerveModule(
+      "Back Left",
+      ModuleConstants.backLeftDriveCANID, 
+      ModuleConstants.backLeftTurningCANID, 
+      true, 
+      ModuleConstants.backLeftAbsoluteOffset);
+  
+    private final SwerveModule backRight = new SwerveModule(
+      "Back Right",
+      ModuleConstants.backRightDriveCANID, 
+      ModuleConstants.backRightTurningCANID, 
+      true, 
+      ModuleConstants.backRightAbsoluteOffset);
+    
+    public SwerveSubsystem() {}
+
+    @Override
+    public void periodic() {}
+
+    public double getHeading() {
+        return Math.IEEEremainder(gyro.getAngle(), 360);
+      }
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>4. Initializing SwerveSubsystem as a Subsystem</h2>
+
+        <p>
+            In RobotContainer, initialize it as a subsystem
+        </p>
+
+        <button onclick="showCode('code3')">Show Code</button>
+        <div id="code3" style="display: none;">
+            <pre><code class="code_block">
+public class RobotContainer {                  
+    private final SwerveSubsystem swerve = new SwerveSubsystem();
+    . 
+    . 
+    .
+            </code></pre>
+        </div>
+    </div>
+
+    <script>
+        function showCode(i) {
+            var x = document.getElementById(i);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

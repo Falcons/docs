@@ -7,6 +7,36 @@
 }
 
 .subsectionDivider{
+    margin-top: 50px;
     border-top: 5px solid #0D1D45;
     width: 5%;
+}
+
+.subsection{
+    width: 100%;
+}
+
+.doc_eqv {
+    background: #fdebca;
+    border: 1px solid #ddd;
+    border-left: 3px solid #0D1D45;
+    width:fit-content;
+    padding: 5px;
+
+}
+
+.code_block {
+    border: 1px solid #ddd;
+    border-left: 3px solid #0D1D45;
+    page-break-inside: avoid;
+    max-width: 100%;
+    overflow: auto;
+    padding: 0px;
+    word-wrap: break-word;
+}
+
+.important {
+    border-top: 20px solid #6ab0de;
+    background: #e7f2fa;
+    max-width: 50%;
 }

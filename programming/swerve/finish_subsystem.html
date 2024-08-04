@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="/highlight/styles/default.css">
+    <script src="/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="/styles/layout.css">
+
+    <title>Swerve: Subsystem</title>
+</head>
+
+<body>
+    <button onclick="window.location='swerve_home.html'">Go Back</button>
+
+    <h1>Finishing Swerve Subsystem</h1>
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+
+        <h2>1. SwerveModuleStates</h2>
+        <p>
+            <a href="https://first.wpi.edu/wpilib/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/SwerveModuleState.html">SwerveModuleStates</a> 
+            consist of a wheel <em>speed</em> and <em>angle</em>. We need to make a function to get our current Module states, and set a desired state.<br>
+            As this is specific to each module, these will be made in SwerveModule.java.
+        </p>
+
+        <button onclick="showCode('code1')">Show Code</button>
+        <div id="code1" style="display: none;">
+            <pre><code class="code_block">
+public SwerveModuleState getState() {
+    //For everything except displaying on Shuffleboard, angles must be in radians
+    return new SwerveModuleState(getDriveVelocity(), new Rotation2d(getAbsoluteEncoderDeg() * Conversion.degToRad));
+}
+
+public void setDesiredState(SwerveModuleState state) {
+    if (Math.abs(state.speedMetersPerSecond) < 0.001) { //So state doesn't reset at low speeds
+        stop();
+        return;
+    }
+
+    //Optomizes given state so wheels never have to turn more than 90 degrees
+    state = SwerveModuleState.optimize(state, getState().angle);
+
+    //.set() takes a value from 0 to 1, so it is given a fraction compared to max speed
+    driveMotor.set(state.speedMetersPerSecond / ModuleConstants.driveFreeSpeedMPS);
+
+    //PID is used to rotate to angle
+    turningMotor.set(turningPID.calculate(getAbsoluteEncoderDeg(), state.angle.getDegrees()));
+}
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+
+        <h2>2. Setting States from the Subsystem</h2>
+        <p>Make a method in SwerveSubsystem to get and set the states of all 4 modules at once<br> (Hint: Arrays)</p>
+
+        <button onclick="showCode('code')">Show Code</button>
+        <div id="code" style="display: none;">
+            <pre><code class="code_block">
+public SwerveModuleState[] getModuleState() {
+    return new SwerveModuleState[] {
+      frontLeft.getState(),
+      frontRight.getState(),
+      backLeft.getState(),
+      backRight.getState()
+    };
+}
+
+public void setModuleStates(SwerveModuleState[] desiredStates) {
+    //If one state is above max speed, reduces speed of all modules proportionally until all are at achievable speed
+    SwerveDriveKinematics.desaturateWheelSpeeds(desiredStates, ModuleConstants.driveFreeSpeedMPS);
+    
+    frontLeft.setDesiredState(desiredStates[0]);
+    frontRight.setDesiredState(desiredStates[1]);
+    backLeft.setDesiredState(desiredStates[2]);
+    backRight.setDesiredState(desiredStates[3]);
+}
+            </code></pre>
+        </div>
+    </div>
+
+    <script>
+        function showCode(i) {
+            var x = document.getElementById(i);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

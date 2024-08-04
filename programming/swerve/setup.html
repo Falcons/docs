@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="/highlight/styles/default.css">
+    <script src="/highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="/styles/layout.css">
+
+    <title>Swerve: Setup</title>
+</head>
+
+<body>
+    <button onclick="window.location='swerve_home.html'">Go Back</button>
+    <h1>Setting up Motors and Sensors</h1>
+
+    <div class="subsectionDivider"></div>
+    <div class="subsection" style="display: flex; padding-top: 0px;">
+        <div style="width: 100%; height:fit-content">
+            <h2>1. Motors and Motor Controllers</h2>
+            <p>
+                There are 4 Swerve Modules(MK4i) on the robot, each module has one motor for driving (turning wheel) and one for steering (changing wheel angle).
+                Our Swerve Drive uses 8 Spark Max Motor Controllers total, each connected to their own Neo v1.1 Motor.
+            </p>
+            <p>
+                <strong>Task: Initialize 8 CANSparkMax motor controller variables.</strong><br>
+                Name them in a way that tells you which module they are on, and whether they are a driving or steering motor.
+                Note: These are the same motors used in Ingenuity's drivetrain, initializing them is very similar
+            </p>
+            <button onclick="showCode('code1')">Show Code</button>
+            <div id="code1" style="display: none; width: fit-content;">
+                <pre>
+                    <code class="language-java code_block">
+        import com.revrobotics.CANSparkMax;
+        import com.revrobotics.CANSparkLowLevel.MotorType;
+        
+        public class Robot extends TimedRobot {
+        private final CANSparkMax backLeftS = new CANSparkMax(1, MotorType.kBrushless);
+        private final CANSparkMax backLeftD = new CANSparkMax(2, MotorType.kBrushless);
+        private final CANSparkMax frontLeftS = new CANSparkMax(3, MotorType.kBrushless);
+        private final CANSparkMax frontLeftD = new CANSparkMax(4, MotorType.kBrushless);
+        private final CANSparkMax backRightD = new CANSparkMax(5, MotorType.kBrushless);
+        private final CANSparkMax backRightS = new CANSparkMax(6, MotorType.kBrushless);
+        private final CANSparkMax frontRightD = new CANSparkMax(7, MotorType.kBrushless);
+        private final CANSparkMax frontRightS = new CANSparkMax(8, MotorType.kBrushless);
+                    </code>
+                </pre>
+            </div>
+        </div >
+
+        <div style="width:40%; height:fit-content">
+            <img src="/images/swerve/setup/spark_max.webp" width="150px" title="Spark Max Motor Controller">
+            <img src="/images/swerve/setup/neo_motor.webp" width="150px" title="Neo v1.1 Motor">
+            <img src="/images/swerve/setup/swerve_module.png" width="150px" title="MK4i Swerve Module">
+        </div>
+
+    </div>
+    <br>
+    
+    <div class="subsectionDivider"></div>
+    <div class="subsection">
+        <h2>2. Encoders</h2>
+
+        <p>
+            <strong>Task #1: Initialize the encoders </strong>
+            <br>
+            Each motor has an integrated encoder. 
+            Each module also has a Thrifty Absolute Magnetic Encoder, which is connected to the Data Port of each modules Steering Spark Max.
+            <br>
+            <a href="https://codedocs.revrobotics.com/java/com/revrobotics/cansparkmax">SparkMax Class Docs</a>
+        </p>
+
+        <p style="padding-top: 10px;">
+            <strong>Task #2:</strong> The raw value of the Absolute encoder goes from 0 to 3.3 when the wheel angle is rotated one full rotation.
+            Make a multiplication factor and use encoder methods to turn this into a degree value (goes from 0 to 360 when the wheel angle does one rotation)
+
+            The raw value of the steering and drive encoders go from 0 to 1 when the <strong>motor</strong> does one full rotation:
+            <br><strong>For the steering encoder, use the given gear ratio to convert this into a degree value for the <em>wheel</em> rotation.</strong>
+            <br><strong>For the driving encoder, use the given gear ratios to convert this into metres travelled.</strong>
+            <br><br>
+            Steering: The steering gear ratio of the MK4i is 150/7:1 (For around every 21.4 rotations of the motor, the wheel spins one rotation).
+            
+            <br>
+            Driving: The driving gear ratio is 6.75:1 (6.75 motor rotations = 1 wheel revolution)
+            The diameter of the wheel is 4 inches.
+        </p>
+
+        <p style="padding-top: 10px;">
+            <strong>Task #3: Create methods for the absolute and turning encoders to output the correct values.</strong> 
+            <br>
+            The values are in degrees and all the absolute encoders need to show 0 when the wheel is facing straight forward, but they will all be off by some amount (listed below).
+            In addition, the angle should increase to 180 when the wheel angle turns counter-clockwise, and decrease to -180 when turned counter-clockwise. 
+            (180 and -180 are both the same point, the when the wheel does a half rotation the value of the encoder should jump from one to the other).
+             
+            The integrated encoder will increase and decrease forever, and the absolute will loop back once it reaches a minimum or maximum value.
+            <br><br>
+            Absolute Encoder Offsets: (value shown by absolute encoder when wheel is facing straight)
+            <ul>
+                <li>Front Left: 221.86</li>
+                <li>Front Right: 152.70</li>
+                <li>Back Left: 72.73</li>
+                <li>Back Right: 95.95</li>
+            </ul>
+        </p>
+
+        <button onclick="showCode('code2')">Show Code (For #1,2,3)</button>
+
+        <div id="code2" style="display: none;">
+            <pre><code class="code_block">
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkAnalogSensor;
+
+private SparkAnalogSensor backLeftAbsEncoder, backRightAbsEncoder, frontLeftAbsEncoder, frontRightAbsEncoder;
+private RelativeEncoder frontLeftDEncoder, frontRightDEncoder, backLeftDEncoder, backRightDEncoder, 
+    frontLeftSEncoder, frontRightSEncoder, backLeftSEncoder, backRightSEncoder;
+
+//Task #2
+public final double absEncoderToWheelDegree = 360.0 / 3.3;
+                                    //gear ratio * circumference of wheel / # of ft in a metre         
+public final double driveMotorRotToMetre = 1.0 / 6.75 * 4 * Math.PI / 39.3;
+                                    // gear ratio * 360 (convert rotation to degree)
+public final double turningMotorRotToWheelDegree = 1.0 / (150.0 / 7.0) * 360;
+
+public Robot() {  
+//Task #1 
+    frontLeftDEncoder = frontLeftD.getEncoder();
+    frontRightDEncoder = frontRightD.getEncoder();
+    backLeftDEncoder = backLeftD.getEncoder();
+    backRightDEncoder = backRightD.getEncoder();
+
+    frontLeftSEncoder = frontLeftS.getEncoder();
+    frontRightSEncoder = frontRightS.getEncoder();
+    backLeftSEncoder = backLeftS.getEncoder();
+    backRightSEncoder = backRightS.getEncoder();
+
+    backLeftAbsEncoder = backLeftS.getAnalog(SparkAnalogSensor.Mode.kAbsolute);
+    backRightAbsEncoder = backRightS.getAnalog(SparkAnalogSensor.Mode.kAbsolute);
+    frontLeftAbsEncoder = frontLeftS.getAnalog(SparkAnalogSensor.Mode.kAbsolute);
+    frontRightAbsEncoder = frontRightS.getAnalog(SparkAnalogSensor.Mode.kAbsolute);
+
+    backLeftAbsEncoder.setPositionConversionFactor(absEncoderToWheelDegree);
+    backRightAbsEncoder.setPositionConversionFactor(absEncoderToWheelDegree);
+    frontLeftAbsEncoder.setPositionConversionFactor(absEncoderToWheelDegree);
+    frontRightAbsEncoder.setPositionConversionFactor(absEncoderToWheelDegree);
+
+    frontLeftDEncoder.setPositionConversionFactor(driveMotorRotToMetre);
+    frontRightDEncoder.setPositionConversionFactor(driveMotorRotToMetre);
+    backLeftDEncoder.setPositionConversionFactor(driveMotorRotToMetre);
+    backRightDEncoder.setPositionConversionFactor(driveMotorRotToMetre);
+
+    frontLeftSEncoder.setPositionConversionFactor(turningMotorRotToWheelDegree);
+    frontRightSEncoder.setPositionConversionFactor(turningMotorRotToWheelDegree);
+    backLeftSEncoder.setPositionConversionFactor(turningMotorRotToWheelDegree);
+    backRightSEncoder.setPositionConversionFactor(turningMotorRotToWheelDegree);
+}
+
+//Task #3 Examples
+public double getAbsoluteEncoderDeg(SparkAnalogSensor absEncoder, double offset) {
+    if (absEncoder.getPosition() - absEncoderOffset < 180 && absEncoder.getPosition() > -180) {
+        return absEncoder.getPosition() - absEncoderOffset;
+    } else if (absEncoder.getPosition() - absEncoderOffset < -180){
+        return absEncoder.getPosition() - absEncoderOffset + 360;
+    } else {
+        return absEncoder.getPosition() - absEncoderOffset - 360;
+    }
+}
+
+
+public double getSteeringEncoderDegree(RelativeEncoder encoder) {
+    //typecasting for integer division
+    int divisor = (int)encoder.getPosition() / 360;
+    
+    if (encoder.getPosition() > 0) {
+      return encoder.getPosition() - divisor * 360;
+    } else {
+      return encoder.getPosition() - (divisor - 1.0) * 360;
+    }
+  }
+//Another (probably better) way to do steering encoder, from 0ToAuto
+public double getSteeringEncoderDegree() {
+    return Math.IEEEremainder(turningEncoder.getPosition(), 360);
+} 
+            </code></pre>
+        </div>
+
+        <p style="padding-top: 10px;">
+            <strong>Task #4 (short): Make a velocity conversion factor</strong>
+            The default unit for velocity is RPM (rotations per minute).
+            As we already have a constant to convert rotations to whatever value we need, 
+            all we need to do now is convert minutes to seconds.
+        </p>
+
+        <div id="code3">
+            <pre><code class="code_block">
+public final double driveMotorRPMToMetresPerSecond = driveRotToMetre / 60.0;
+
+public final double turningMotorRPMToDegreePerSecond = turningRotToWheelDegree / 60.0;
+
+frontLeftDEncoder.setVelocityConversionFactor(driveMotorRPMToMetresPerSecond);
+frontRightDEncoder.setVelocityConversionFactor(driveMotorRPMToMetresPerSecond);
+backLeftDEncoder.setVelocityConversionFactor(driveMotorRPMToMetresPerSecond);
+backRightDEncoder.setVelocityConversionFactor(driveMotorRPMToMetresPerSecond);
+
+frontLeftSEncoder.setVelocityConversionFactor(turningMotorRPMToDegreePerSecond);
+frontRightSEncoder.setVelocityConversionFactor(turningMotorRPMToDegreePerSecond);
+backLeftSEncoder.setVelocityConversionFactor(turningMotorRPMToDegreePerSecond);
+backRightSEncoder.setVelocityConversionFactor(turningMotorRPMToDegreePerSecond);
+            </code></pre>
+        </div>
+
+        <p style="padding-top: 10px;">
+            <strong>Task #5 (short): Make and store variables for max speed</strong>
+            REV Robotics rates the max speed (free speed) of a NEO to be 5820 RPM. 
+            To get the max speed for driving, just use the velocity conversion factors already created. <br>
+            The max speed for rotating is more complicated, as it refered to the whole robot rotating instead of just one module.
+            Once I learn HTML enough to make diagrams I'll explain it better, for now just copy and paste the code.
+        </p>
+
+        <button onclick="showCode('code4')">Show Code</button>
+        <div id="code4" style="display: none;">
+            <pre><code class="code_block">
+public final double neoFreeSpeedRPM = 5820;
+public final double maxDriveSpeedMPS = neoFreeSpeedRPM * driveRPMToMetresPerSecond;
+
+public final double kTrackwidth = Units.inchesToMeters(23.75);
+private final double rotDiameter = Math.sqrt(2 * kTrackwidth * kTrackwidth);
+private final double rotCircumference = rotDiameter * Math.PI;
+private final double secondsForOneRot = rotCircumference / maxDriveSpeedMPS;
+public final double maxAngularSpeedRotPerSecond = 1.0 / secondsForOneRot;
+public final double maxAngularSpeedRadiansPerSecond = maxAngularSpeedRotPerSecond * 2 * Math.PI;
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="subsectionDivider"></div>
+    <div class="subsection">
+        
+        <h2>3. Gyro</h2>
+
+        <p>
+            <strong>Task #1: Initialize Gyro</strong><br>
+            Our Swerve uses a <a href="https://store.ctr-electronics.com/pigeon-2/">CTRE Pigeon 2.0</a>.
+            Make sure you have the correct libraries when initializing the gyro object.
+        </p>
+
+        <p>
+            <strong>Task #2: Create Methods</strong><br>
+            We want the gyro value to be in degrees, and count up when rotated counter-clockwise(CCW+).
+            It should also jump from 180 to -180, as the angle encoders do.
+            <a href="https://api.ctr-electronics.com/phoenix6/release/java/">CTRE Phoenix API</a>
+        </p>
+    </div>
+    
+    <button onclick="showCode('code3')">Show Code</button>
+    <div id="code3" style="display: none;">
+        <pre>
+            <code class="code_block">
+import com.ctre.phoenix6.hardware.Pigeon2;
+
+public class Robot extends TimedRobot {
+    private final Pigeon2 gyro = new Pigeon2(12);
+
+}
+//getAngle() is CCW+, but continuous (goes past 360)
+public double getHeading() {
+    return Math.IEEEremainder(gyro.getAngle(), 360);
+  }
+            </code>
+        </pre>
+    </div>
+
+    <script>
+        function showCode(i) {
+            var x = document.getElementById(i);
+            if (x.style.display === "none") {
+                x.style.display = "block";
+            } else {
+                x.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
