@@ -2,27 +2,21 @@
 <html>
 <head>
     <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
-    <link rel="stylesheet" href="../highlight/styles/default.css">
-    <script src="../highlight/highlight.min.js"></script>
+    <link rel="stylesheet" href="/highlight/styles/default.css">
+    <script src="/highlight/highlight.min.js"></script>
     <script>hljs.highlightAll();</script>
 
-    <link rel="stylesheet" href="../styles/layout.css">
+    <link rel="stylesheet" href="/styles/layout.css">
 
     <title></title>
 </head>
 
 <body>
-    <button onclick="window.location=' '">Go Back</button>
+    <a href="https://falcons.github.io/">Go Back</a>
+    <p>A</p>
 
     <div class="subsection">
         <div class="subsectionDivider"></div>
-    </div>
-
-    <button onclick="showCode('code')">Show Code</button>
-    <div id="code" style="display: none;">
-        <pre><code class="code_block">
-
-        </code></pre>
     </div>
 
     <script>
@@ -33,6 +27,10 @@
             } else {
                 x.style.display = "none";
             }
+        }
+
+        function toLink(i) {
+            action="https://falcons.github.io";
         }
     </script>
 </body>
