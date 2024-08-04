@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/styles/layout.css">
+
+<link rel="stylesheet" href="/highlight/styles/default.css">
+<script src="/highlight/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+
+<style>
+    .doc_eqv {
+        background: #fdebca;
+        border: 1px solid #ddd;
+        border-left: 3px solid #0D1D45;
+        width:fit-content;
+        padding: 5px;
+
+    }
+
+    .code_block {
+        background: #f4f4f4;
+        border: 1px solid #ddd;
+        border-left: 3px solid #0D1D45;
+        page-break-inside: avoid;
+        max-width: 100%;
+        overflow: auto;
+        padding: 0px;
+        word-wrap: break-word;
+    }
+</style>
+
+<body>
+    <button onclick="window.location='start_home.html'">Go Back</button>
+
+    <h1>Starting a New Project</h1>
+
+    
+    <div>
+        <div class="subsectionDivider"></div>
+        <h2>1. Creating a new Project</h2>
+
+        <div class="doc_eqv">
+            WPILib Documentation Equivalent:
+            <a href="https://docs.wpilib.org/en/stable/docs/zero-to-robot/step-4/creating-test-drivetrain-program-cpp-java-python.html">
+                Creating your Test Drivetrain Program
+            </a> 
+        </div>
+
+        .<br>
+        .<br>
+        .<br>
+        After clicking <span style="border:2px, solid, #0D1D45;">Generate Project</span>, you should get a window that looks like this:
+        <br>
+        <img src="/images/start/first_program/timed_project_blank.png" width="40%">
+        <br><br>
+        All the code you will put in this project will go in src/main/java/frc/robot/Robot.java 
+        <br>
+        <img src="/images/start/first_program/timed_project_robot_file_blank.png" width="40%">
+
+    </div>
+<br>
+    <div>
+        <div class="subsectionDivider"></div>
+        <h2>2. Installing Third Party Libraries</h2>
+
+        <div class="doc_eqv">
+            WPILib Documentation Equivalent:
+            <a href="https://docs.wpilib.org/en/stable/docs/software/vscode-overview/3rd-party-libraries.html">
+                3rd Party Libraries
+            </a>
+        </div>
+
+        <p>
+            3rd Party Libraries need to be installed for items from CTRE or REV Robotics
+        </p>
+    </div>
+
+    <div>
+        <div class="subsectionDivider"></div>
+        <h2>3. Running a Motor</h2>
+
+        <p>
+
+        </p>
+
+        <pre>
+            <code class="language-java">
+@Override
+public void teleopPeriodic() {
+    <mark>motor.set(0.2);</mark>
+}
+            </code>
+        </pre>
+    </div>
+</body>

@@ -1,0 +1,12 @@
+.ul_linklist {
+    list-style-type: none;
+}
+
+.li_linklist {
+    padding-bottom: 5px;
+}
+
+.subsectionDivider{
+    border-top: 5px solid #0D1D45;
+    width: 5%;
+}
