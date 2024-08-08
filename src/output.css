@@ -569,16 +569,16 @@ video {
   margin: 0.5rem;
 }
 
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
 .mt-2 {
   margin-top: 0.5rem;
 }
 
 .mt-48 {
   margin-top: 12rem;
-}
-
-.mb-1 {
-  margin-bottom: 0.25rem;
 }
 
 .flex {
@@ -601,12 +601,20 @@ video {
   height: 100vh;
 }
 
+.h-14 {
+  height: 3.5rem;
+}
+
 .w-8 {
   width: 2rem;
 }
 
 .w-full {
   width: 100%;
+}
+
+.w-14 {
+  width: 3.5rem;
 }
 
 .flex-row {
@@ -660,12 +668,12 @@ video {
   background-color: rgb(0 198 194 / var(--tw-bg-opacity));
 }
 
-.bg-index {
-  background-image: linear-gradient(to top, rgba(60, 60, 60, 1), rgba(243, 244, 246, 0.5)), url(/assets/images/robot_close.png);
+.bg-docs_translucent {
+  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.2));
 }
 
-.bg-translucent {
-  background-image: linear-gradient(to top, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1));
+.bg-index {
+  background-image: linear-gradient(to top, rgba(60, 60, 60, 1), rgba(243, 244, 246, 0.5)), url(/assets/images/robot_close.png);
 }
 
 .bg-cover {
@@ -688,6 +696,10 @@ video {
 
 .pt-6 {
   padding-top: 1.5rem;
+}
+
+.pl-1 {
+  padding-left: 0.25rem;
 }
 
 .text-2xl {
