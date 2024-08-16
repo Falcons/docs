@@ -26,50 +26,21 @@
 <body>
     <button onclick="window.location='../index.html'">Go Back</button>
     <h1>5032 Programming Resources</h1>
+
+    <h3>Full Robot Program Walkthroughs</h3>
     <ul class="ul_linklist">
         <li class="li_linklist"><a href="start/start_home.html">Starting a robot program</a></li>
-        <li class="li_linklist"><a href="#">Using Github</a></li>
-        <li class="li_linklist"><a href="advanced/advanced_home.html">Advanced Programming</a></li>
-        <li class="li_linklist"><a href="swerve/swerve_home.html">Swerve</a></li>
+        <li class="li_linklist"><a href="swerve/swerve_home.html">Voyager: Building a Swerve Drive</a></li>
     </ul>
 
-    <div>
-    <pre>
-Example of code snippet:
-        <code class="language-java code_block">
-import edu.wpi.first.util.sendable.SendableRegistry;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-
-public class Robot extends TimedRobot {
-    private final CANSparkMax frontLeft = new CANSparkMax(4, MotorType.kBrushless);
-    private final CANSparkMax frontRight = new CANSparkMax(3, MotorType.kBrushless);
-    private final CANSparkMax rearLeft = new CANSparkMax(2, MotorType.kBrushless);
-    private final CANSparkMax rearRight = new CANSparkMax(1, MotorType.kBrushless);
-  
-    private final DifferentialDrive drive = new DifferentialDrive(frontLeft, frontRight);
-  
-    private final RelativeEncoder leftEncoder = frontLeft.getEncoder();
-    private final RelativeEncoder rightEncoder = frontRight.getEncoder();
-    private WPI_Pigeon2 gyro = new WPI_Pigeon2(6);
-    
-    private final XboxController controller = new XboxController(0);
-  
-    private PIDController pid = new PIDController(0.04, 0.005, 0);
-    private double distance = 0;
-    private double setpoint = 0;
-  
-    private PIDController gyroPID = new PIDController(0.04, 0.05, 0);
-  
-    private double kRevToWheel = 198/2108;
-    private double kRevToFeet = 1188 * Math.PI / 25296;
-        </code>
-    </pre>
-    </div>
-    </body>
-
+    <h3>Tools Documentation</h3>
+    <ul class="ul_linklist">
+        <li class="li_linklist"><a href="sensors/">Sensors</a></li>
+        <li class="li_linklist"><a href="">Command-Based Structure</a></li>
+        <li class="li_linklist"><a href="wpilib/wpilib.html">WPILib</a></li>
+        <li class="li_linklist"><a href="limelight/">Limelight</a></li>
+        <li class="li_linklist"><a href="">Path Planning</a></li>
+        <li class="li_linklist"><a href="#">Github</a></li>
+    </ul>
 </body>
 </html>
