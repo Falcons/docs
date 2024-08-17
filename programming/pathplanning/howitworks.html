@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="../highlight/styles/default.css">
+    <script src="../highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="../styles/layout.css">
+
+    <title></title>
+</head>
+
+<body>
+    <button onclick="window.location='/programming/wpilib/index.html'">Go Back - WPILib Tools</button><br>
+    <button onclick="window.location='./'">Go Back - Path Planning</button>
+    
+    <h1>WPILib Kinematics Classes <span style="font-size: smaller;">( + how path planning works)</span></h1>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>1. ChassisSpeeds</h2>
+        <p>
+            Path planners take a continuous path and break it up into single chunks to send to the robot one at a time.
+        </p>
+        <img src="/programming/images/pathplanning/pathplanning-explanation.jpg" width="50%">
+        <p>
+            At each moment on the path, the robot will have an X and Y speed, which are directions on the field,
+            and a turning speed, which is the speed the robot is changing direction.
+        </p>
+        <img src="/programming/images/pathplanning/pathplanning-coordinates.jpg">
+
+        <p>
+            These values are stored in a <a target="_blank" href="https://first.wpi.edu/wpilib/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeed</a> class.
+
+        </p>
+        <div>
+            <pre><code class="code_block">
+// 1 m/s in the x direction, 2 m/s in the y direction, 1 rotation per second counterclockwise
+ChassisSpeeds chassisSpeeds = new ChassisSpeeds(1.0, 2.0, Math.PI);
+            </code></pre>
+        </div>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>2. Converting to Robot Speeds</h2>
+        <p>
+            To make the robot follow these speeds, the ChassisSpeeds values need to be converted into speeds for the individual robot wheels.
+            For differential, these are speeds for the left and right sides of the robot, for swerve, these are states for each module.
+        </p>
+        <p>
+            Each type of drivetrain has their own kinematics class to convert a ChassisSpeeds class.
+            The Differential drive kinematics class needs the distance between the right and left wheels.
+            The Swerve kinematics class needs the distance between each module and the centre of the robot. 
+        </p>
+        <p>This example uses the chassisSpeeds variable in the code block above:</p>
+        <pre><code class="code_block">
+// Differential Drive
+
+    //The left and right wheels are 0.683 metres apart 
+DifferentialDriveKinematics differentialKinematics = new DifferentialDriveKinematics(0.683);
+
+DifferentialDriveWheelSpeeds wheelSpeeds = differentialKinematics.toWheelSpeeds(chassisSpeeds);
+
+double leftVelocity = wheelSpeeds.leftMetersPerSecond;
+double rightVelocity = wheelSpeeds.rightMetersPerSecond;
+</code></pre>
+<pre><code class="code_block">
+// Swerve Drive
+
+    //Swerve: module order - front left, front right, back left, back right
+SwerveDriveKinematics swerveKinematics = new SwerveDriveKinematics(
+    // The front left module is 0.302 metres up and 0.302 metres left from the centre
+    // up and left are positive
+    new Translation2d(0.302, 0.302),
+    new Translation2d(0.302, -0.302),
+    new Translation2d(-0.302, 0.302),
+    new Translation2d(-0.302, -0.302));
+
+SwerveModuleState[] moduleStates = swerveKinematics.toSwerveModuleStates(chassisSpeeds);
+        </code></pre>
+    </div>
+</body>
+</html>
