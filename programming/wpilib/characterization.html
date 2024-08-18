@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Copy and paste these 3 lines to get code highlighting using language-java class, example at bottom -->
+    <link rel="stylesheet" href="../highlight/styles/default.css">
+    <script src="../highlight/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+
+    <link rel="stylesheet" href="../styles/layout.css">
+
+    <link rel="icon" href="/assets/images/logo_main.png">
+    <title>5032 Docs | WPILib: Characterization</title>
+</head>
+
+<body>
+    <button onclick="window.location='./'">Go Back</button>
+    <h1>Characterization</h1>
+
+    <div class="doc_eqv">
+        Official Documentation: WPILib | <a target="_blank"; href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/system-identification/index.html">System Identification</a>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>1. What characterizing does</h2>
+        <p>Characterization gives the following series of voltage gains (constants) for whatever system you use it with.</p>
+        <ul>
+            <li>kS: The voltage needed to overcome the static friction in the motors</li>
+            <li>kV: The voltage needed to keep the system at a constant velocity</li>
+            <li>kA: The voltage needed for the system to accelerate at a given rate</li>
+            <li>kG: The voltage needed to counteract gravity (only used when needed e.g. Arms, Elevators)</li>
+        </ul>
+        <p>
+            These constants allow you to precisely control your robot's movement by calculating a voltage needed to achieve a certain speed.
+            They are used in path planning, motion profiling, and more.
+        </p>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>2. Setting up a SysId Routine</h2>
+        <p>
+            The SysId classes create 4 test, which will run the system forwards and backwards.
+            By logging the travelled distance of your system (with encoders), it can generate the gains.
+        </p>
+        <p>
+            Creating the runs requires an object of SysIdRoutine. This has the following parameters:
+        </p>
+        <img src="/programming/images/wpilib/sysid/sysidroutineparameters.png" width="45%" alt="SysIdRoutine Parameters">
+        <p>
+            SysIdRoutine.Config comes with default configurations, so we just need to pass in a new object. 
+            The Mechanism object is a bit more complicated:
+        </p>
+        <img src="/programming/images/wpilib/sysid/mechanismparameters.png" width="50%" alt="Mechanism Parameters"> 
+        <p>
+            This requires Consumers, Which define a method that takes in an &ltobject&gt and produces a result. <a href="https://www.geeksforgeeks.org/java-8-consumer-interface-in-java-with-examples/">(More info on consumers)</a>. <br>
+            The drive consumer has to take in a <a href="https://docs.wpilib.org/en/stable/docs/software/basic-programming/java-units.html">Measure&ltVoltage&gt</a> and use this to send a voltage to the motor controllers. <br>
+            The log consumer takes in a <a href="https://github.wpilib.org/allwpilib/docs/release/java/edu/wpi/first/wpilibj/sysid/SysIdRoutineLog.html">SysIdRoutineLog</a> and records the current voltage, position, and velocity.     
+        </p>
+        <p>
+            Here are example methods for both of these for a Differential Drivetrain using RevRobotics SparkMax motor controllers
+        </p>
+        <pre><code class="code_block">
+public void voltageDrive (Measure<Voltage> volts) {
+  frontLeft.setVoltage(volts.in(Volts));
+  frontRight.setVoltage(volts.in(Volts));
+}
+// Tells SysId how to read voltage, position, velocity
+public void log(SysIdRoutineLog log) {
+  
+  //Average of left and right sides of drivetrain
+  double avgVoltage = ((frontLeft.getAppliedOutput() * frontLeft.getBusVoltage()) 
+    + (frontRight.getAppliedOutput() * frontRight.getBusVoltage())) / 2.0;
+  double avgLinearPos = (frontLeftEncoder.getPosition() + frontRightEncoder.getPosition()) / 2.0;
+  double avgLinearVel = (frontLeftEncoder.getVelocity() + frontRightEncoder.getVelocity()) / 2.0;
+
+  log.motor("drivetrain")
+    .voltage(m_appliedVoltage.mut_replace(avgVoltage,Volts))
+    .linearPosition(m_distance.mut_replace(avgLinearPos, Meters))
+    .linearVelocity(m_velocity.mut_replace(avgLinearVel, MetersPerSecond));
+}
+        </code></pre>
+
+        <p>
+            Now that we have all of our parameters, we can create a mechanism and routine object. 
+            The routine object has functions to return the commands to start these tests.
+        </p>
+
+        <pre><code class="code_block">
+private final SysIdRoutine.Mechanism mechanism = new SysIdRoutine.Mechanism(this::voltageDrive, this::log, this);
+            
+private final SysIdRoutine m_sysIdRoutine = new SysIdRoutine(new SysIdRoutine.Config(), mechanism);
+
+public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.quasistatic(direction);
+}
+
+public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return m_sysIdRoutine.dynamic(direction);
+}
+        </code></pre>
+    </div>
+
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>3. Running the Tests</h2>
+        <p>
+            The tests can each be tied to a controller button to easily start and stop them. For drivetrain routes, the docs suggest 10 to 20 feet of space to run.
+            The quasistatic tests will start at 0 and gradually get faster, the dynamic tests will begin at a high speed.
+            This is how the tests are run in the WPI example.
+        </p>
+        <pre><code class="code_block">
+private final Drivetrain drivetrain = new Drivetrain();
+private final CommandXboxController driver = new CommandXboxController(0);
+. 
+. 
+. 
+
+driver
+  .a()
+  .and(driver.leftBumper())
+  .whileTrue(drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
+driver
+  .b()
+  .and(driver.leftBumper())
+  .whileTrue(drivetrain.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
+driver
+  .x()
+  .and(driver.leftBumper())
+  .whileTrue(drivetrain.sysIdDynamic(SysIdRoutine.Direction.kForward));
+driver
+  .y()
+  .and(driver.leftBumper())
+  .whileTrue(drivetrain.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+        </code></pre>
+    </div>
+    
+    <div class="subsection">
+        <div class="subsectionDivider"></div>
+        <h2>4. Getting the constants</h2>
+        <p>
+            The RIO log with the test data can be downloaded with the DataLogTool.
+            Make sure you are connected to your robot to access your log file.
+            In the 'Entries' tab, you should see the values that match the ones in your log method.
+            Here is a screenshot from the WPILib page of the DataLogTool.
+        </p>
+        <img src="/programming/images/wpilib/sysid/datalogtool.webp" width="50%" alt="DataLogTool">
+        <p>
+            After you have downloaded the file, open the SysId tool and drag and drop your logged values into the 'Data Selector' tab.
+            The 'Analyzer' should then the generate constants you need.
+        </p>
+        <img src="/programming/images/wpilib/sysid/sysidtool.webp" width="50%" alt="SysId Tool">
+    </div>
+</body>
+</html>
