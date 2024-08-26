@@ -13,8 +13,8 @@
 </head>
 
 <body>
-    <button onclick="window.location='/programming/wpilib/index.html'">Go Back - WPILib Tools</button><br>
-    <button onclick="window.location='./'">Go Back - Path Planning</button>
+    <button onclick="window.location='./'">Go Back - WPILib Tools</button><br>
+    <button onclick="window.location='../pathplanning/'">Go Back - Path Planning</button>
     
     <h1>WPILib Kinematics Classes <span style="font-size: smaller;">( + how path planning works)</span></h1>
 
@@ -24,12 +24,12 @@
         <p>
             Path planners take a continuous path and break it up into single chunks to send to the robot one at a time.
         </p>
-        <img src="/programming/images/pathplanning/pathplanning-explanation.jpg" width="50%">
+        <img src="../images/pathplanning/pathplanning-explanation.jpg" width="50%" alt="Path Planning ChassisSpeed Diagram">
         <p>
             At each moment on the path, the robot will have an X and Y speed, which are directions on the field,
             and a turning speed, which is the speed the robot is changing direction.
         </p>
-        <img src="/programming/images/pathplanning/pathplanning-coordinates.jpg">
+        <img src="../images/pathplanning/pathplanning-coordinates.jpg" alt="WPILib Coordinate System">
 
         <p>
             These values are stored in a <a target="_blank" href="https://first.wpi.edu/wpilib/allwpilib/docs/release/java/edu/wpi/first/math/kinematics/ChassisSpeeds.html">ChassisSpeed</a> class.

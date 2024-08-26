@@ -46,12 +46,12 @@
         <p>
             Creating the runs requires an object of SysIdRoutine. This has the following parameters:
         </p>
-        <img src="/programming/images/wpilib/sysid/sysidroutineparameters.png" width="45%" alt="SysIdRoutine Parameters">
+        <img src="../images/wpilib/sysid/sysidroutineparameters.png" width="45%" alt="SysIdRoutine Parameters">
         <p>
             SysIdRoutine.Config comes with default configurations, so we just need to pass in a new object. 
             The Mechanism object is a bit more complicated:
         </p>
-        <img src="/programming/images/wpilib/sysid/mechanismparameters.png" width="50%" alt="Mechanism Parameters"> 
+        <img src="../images/wpilib/sysid/mechanismparameters.png" width="50%" alt="Mechanism Parameters"> 
         <p>
             This requires Consumers, Which define a method that takes in an &ltobject&gt and produces a result. <a href="https://www.geeksforgeeks.org/java-8-consumer-interface-in-java-with-examples/">(More info on consumers)</a>. <br>
             The drive consumer has to take in a <a href="https://docs.wpilib.org/en/stable/docs/software/basic-programming/java-units.html">Measure&ltVoltage&gt</a> and use this to send a voltage to the motor controllers. <br>
@@ -144,12 +144,12 @@ driver
             In the 'Entries' tab, you should see the values that match the ones in your log method.
             Here is a screenshot from the WPILib page of the DataLogTool.
         </p>
-        <img src="/programming/images/wpilib/sysid/datalogtool.webp" width="50%" alt="DataLogTool">
+        <img src="../images/wpilib/sysid/datalogtool.webp" width="50%" alt="DataLogTool">
         <p>
             After you have downloaded the file, open the SysId tool and drag and drop your logged values into the 'Data Selector' tab.
             The 'Analyzer' should then the generate constants you need.
         </p>
-        <img src="/programming/images/wpilib/sysid/sysidtool.webp" width="50%" alt="SysId Tool">
+        <img src="../images/wpilib/sysid/sysidtool.webp" width="50%" alt="SysId Tool">
     </div>
 </body>
 </html>
